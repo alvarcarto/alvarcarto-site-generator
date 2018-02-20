@@ -32,7 +32,16 @@ This generator transforms our WordPress site to a static version.
 
 ## How it works
 
-We're using [node-website-scraper](https://github.com/website-scraper/node-website-scraper) to scrape the WordPress site. 
-Not all files are reachable with normal links and scraping, so we have a whitelist of urls to manually download e.g. sitemap.
-On top of that, everything from `files` directory is copied to the destination folder. This is useful for e.g. Netlify-specific files.
+1. Scrape the WordPress site with[node-website-scraper](https://github.com/website-scraper/node-website-scraper).
+
+    The scraper should make almost 1-to-1 copy of the site. Directory structure and everything should match.
+
+2. Download manual urls
+
+    Not all files are reachable via normal site links and scraping, so we have a whitelist of urls to manually download. 
+    For example sitemap files.
+
+3. Copy everything from `files/*` on top of that
+
+  This is useful for e.g. Netlify-specific files or any possible manual overrides.
 
