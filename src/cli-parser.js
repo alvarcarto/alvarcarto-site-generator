@@ -7,7 +7,7 @@ const VERSION = require('../package.json').version;
 
 const defaultOpts = {
   concurrency: 10,
-  verbose: false,
+  verbose: true,
   outputDir: '../alvarcarto.com',
 };
 

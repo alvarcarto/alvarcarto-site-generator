@@ -31,4 +31,4 @@ node_modules
 .vagrant
 
 package-lock.json
-site
+build

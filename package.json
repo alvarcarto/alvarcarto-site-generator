@@ -9,6 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bluebird": "^3.5.1",
+    "common-tags": "^1.7.2",
+    "fs-extra": "^5.0.0",
+    "inquirer-confirm": "^0.2.2",
     "lodash": "^4.17.5",
     "validator": "^9.4.1",
     "website-scraper": "^3.3.2",
