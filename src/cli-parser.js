@@ -8,7 +8,7 @@ const VERSION = require('../package.json').version;
 const defaultOpts = {
   concurrency: 10,
   verbose: true,
-  outputDir: '../alvarcarto.com',
+  outputDir: './build',
 };
 
 function getOpts(argv) {
@@ -43,7 +43,7 @@ function getUserOpts() {
       describe: 'Where to output files',
       default: defaultOpts.outputDir,
     })
-    .alias('c', 'concurrency')
+    .alias('o', 'output-dir')    
 
     .help('h')
     .alias('h', 'help')

@@ -15,7 +15,7 @@ BPromise.config({
   longStackTraces: true,
 });
 
-const BUILD_DIR = 'build';
+const BUILD_DIR = '.build';
 
 function main(opts) {
   const manualFullUrls = _.map(manualUrls, u => new URL(u, opts.url));
@@ -39,8 +39,7 @@ function main(opts) {
   
   console.log(stripIndent`Going to do the following:
 
-    * Remove ./${BUILD_DIR} directory
-    * Remove existing contents of ${opts.outputDir} directory
+    * Remove contents of ${opts.outputDir} directory
   `);
   console.log('');
 
@@ -86,6 +85,13 @@ function moveAllInside(src, dst, _opts) {
         }        
       });
     })
+    .catch(err => {
+      if (err.code === 'ENOENT') {
+        return;
+      }
+
+      throw err;
+    });
 }
 
 // rm src/* 
@@ -105,6 +111,13 @@ function removeAllInside(src, _opts) {
         }        
       });
     })
+    .catch(err => {
+      if (err.code === 'ENOENT') {
+        return;
+      }
+
+      throw err;
+    });
 }
 
 if (require.main === module) {
