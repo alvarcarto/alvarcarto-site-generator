@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
 const BPromise = require('bluebird');
+const request = require('request-promise');
 const confirm = require('inquirer-confirm');
 const _ = require('lodash');
 const scrape = require('website-scraper');
@@ -15,13 +16,13 @@ BPromise.config({
   longStackTraces: true,
 });
 
-const BUILD_DIR = '.build';
+// Site will be first built here, and then copied to the output directory
+const TEMP_DIR = '.tmp';
 
 function main(opts) {
-  const manualFullUrls = _.map(manualUrls, u => new URL(u, opts.url));
   const scrapeOpts = {
-    urls: [opts.url].concat(manualFullUrls),
-    directory: BUILD_DIR,
+    urls: [opts.url],
+    directory: TEMP_DIR,
     recursive: true,
     filenameGenerator: 'bySiteStructure',
     urlFilter: url => new URL(url).hostname.toLowerCase() === new URL(opts.url).hostname.toLowerCase(),
@@ -29,7 +30,7 @@ function main(opts) {
     requestConcurrency: opts.concurrency,
   };
 
-  const buildDir = path.join(__dirname, '..', BUILD_DIR);
+  const buildDir = path.join(__dirname, '..', TEMP_DIR);
   
   function log(...args) {
     if (opts.verbose) {
@@ -47,7 +48,6 @@ function main(opts) {
     .tap(() => log(`\nRemoving ${buildDir} ..`))
     .then(() => fse.remove(buildDir))
     .tap(() => log(`Scraping ${opts.url} ..`))
-    .tap(() => log(`Manually downloading ${manualFullUrls.length} urls ..`))
     .then(() => scrape(scrapeOpts))
     .then((result) => {
       const siteDirName = result[0].filename.split('/')[0];
@@ -56,17 +56,55 @@ function main(opts) {
       return moveAllInside(siteDirPath, buildDir)
         .then(() => fse.remove(siteDirPath));
     })
+    .tap(() => log(`Manually downloading ${manualUrls.length} urls ..`))
+    .then(() => BPromise.each(manualUrls, manual => {
+      const fullUrl = new URL(manual.urlPath, opts.url);
+      console.log(`Downloading ${fullUrl} -> ${TEMP_DIR}/${manual.filePath} ..`);
+
+      return download(fullUrl, path.join(buildDir, manual.filePath))
+        .tap((res) => {
+          if (res.statusCode < 200) {
+            console.warn(`Non-200 status code returned: ${res.statusCode}`);
+          } else if (res.statusCode > 200 && res.statusCode < 500) {
+            console.warn(`Non-200 status code returned: ${res.statusCode}`);
+          } else if (res.statusCode > 500) {
+            console.error(`ERROR! Status code returned: ${res.statusCode}`);
+          }
+        });
+    }))
     .tap(() => log(`Copying everything from files/* to build dir ..`))
     .then(() => fse.copy(path.join(__dirname, '../files'), buildDir, { overwrite: false, errorOnExist: true }))
     .tap(() => log(`Removing existing contents from ${opts.outputDir} ..`))
     .then(() => removeAllInside(opts.outputDir))
     .tap(() => log(`Copy build directory contents to ${opts.outputDir} ..`))
     .then(() => fse.copy(buildDir, opts.outputDir, { overwrite: false, errorOnExist: true }))
-    .tap(() => console.log(`Done. Files written to ${opts.outputDir}`))
+    .tap(() => console.log(`\nDone. Files written to ${opts.outputDir}`))
     .catch((err) => {
       throw err;
     });
 }
+
+function download(url, relativePath) {
+  return BPromise.resolve(request({
+    url,
+    simple: false,
+    encoding: null,
+    resolveWithFullResponse: true,
+  }))
+    .tap((res) => {
+      return saveFile(relativePath, res.body);
+    })
+    .catch(err => {
+      console.error(`Error saving ${url}`);
+      console.error(err);
+      return;
+    });
+}
+
+function saveFile(relativePath, data) {
+  return fse.ensureDir(path.dirname(relativePath))
+    .then(() => fs.writeFileAsync(relativePath, data, { encoding: null }));
+} 
 
 // mv src/* dst
 // Moves contents of dir to `dst` but not the dir itself. Omits dotfiles and dirs.
