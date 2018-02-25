@@ -8,6 +8,7 @@ const defaultOpts = {
   concurrency: 10,
   verbose: true,
   outputDir: './build',
+  checkBrokenLinks: true,
 };
 
 function getOpts() {
@@ -40,6 +41,12 @@ function getUserOpts() {
       default: defaultOpts.outputDir,
     })
     .alias('o', 'output-dir')
+
+    .option('check-broken-links', {
+      describe: 'If true, checks given site for broken links',
+      default: defaultOpts.checkBrokenLinks,
+    })
+    .alias('b', 'check-broken-links')
 
     .help('h')
     .alias('h', 'help')

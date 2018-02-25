@@ -6,7 +6,9 @@ const request = require('request-promise');
 const confirm = require('inquirer-confirm');
 const klaw = require('klaw');
 const _ = require('lodash');
+const chalk = require('chalk');
 const scrape = require('website-scraper');
+const blc = require('broken-link-checker');
 const { stripIndent } = require('common-tags');
 const fse = require('fs-extra');
 const cliParser = require('./cli-parser');
@@ -50,6 +52,17 @@ function main(opts) {
   return BPromise.resolve(confirm('Proceed?'))
     .tap(() => log(`\nRemoving ${tempDir} ..`))
     .then(() => fse.remove(tempDir))
+    .tap(() => log(`Removing existing contents from ${opts.outputDir} ..`))
+    .then(() => removeAllInside(opts.outputDir))
+    .tap(() => {
+      if (opts.checkBrokenLinks) {
+        log(`Checking ${opts.url} for broken links ..\n`);
+        return logBrokenLinks(opts);
+      }
+
+      log('Skip broken links checking.');
+      return BPromise.resolve();
+    })
     .tap(() => log(`Scraping ${opts.url} ..`))
     .then(() => scrape(scrapeOpts))
     .then((result) => {
@@ -113,14 +126,49 @@ function main(opts) {
           }
         });
     }))
-    .tap(() => log(`Removing existing contents from ${opts.outputDir} ..`))
-    .then(() => removeAllInside(opts.outputDir))
     .tap(() => log(`Copy ${TEMP_DIR} contents to ${opts.outputDir} ..`))
     .then(() => fse.copy(tempDir, opts.outputDir, { overwrite: false, errorOnExist: true }))
     .tap(() => console.log(`\nDone. Files written to ${opts.outputDir}`))
     .catch((err) => {
       throw err;
     });
+}
+
+function logBrokenLinks(opts) {
+  return new BPromise((resolve, reject) => {
+    // Recursively scans (crawls) the HTML content at each queued URL to find broken links.
+    const siteChecker = new blc.SiteChecker({
+      cacheResponses: false,
+      // Check everything
+      filterLevel: 3,
+      honorRobotExclusions: false,
+    }, {
+      link: (result) => {
+        // Linkedin doesn't allow scrapers, so omit
+        if (result.broken && result.url.original.indexOf('linkedin') === -1) {
+          const original = chalk.gray(`${result.base.original}`);
+          console.log(`${chalk.red('BROKEN')} ${original} -> ${chalk.bold(result.url.original)}`);
+        }
+      },
+      page: (err, pageUrl) => {
+        if (err) {
+          console.error(`Error checking page ${pageUrl}: ${err}`);
+        } else {
+          console.log(chalk.gray(`Checked ${pageUrl}`));
+        }
+      },
+      site: (err) => {
+        if (err) {
+          reject(err);
+        }
+      },
+      end: () => resolve(),
+    });
+
+    const checkUrls = _.filter(manualUrls, m => m.checkBrokenLinks);
+    const arr = [opts.url].concat(_.map(checkUrls, manual => new URL(manual.urlPath, opts.url)));
+    _.forEach(arr, u => siteChecker.enqueue(u));
+  });
 }
 
 function download(url, relativePath) {
