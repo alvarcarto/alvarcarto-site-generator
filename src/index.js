@@ -102,7 +102,7 @@ function main(opts) {
 
         return fs.readFileAsync(absFilePath, { encoding: null })
           .then((fileContent) => {
-            return transform.transform(relativePath, fileContent);
+            return transform.transform(relativePath, fileContent, opts);
           })
           .then((result) => {
             if (result instanceof Error) {

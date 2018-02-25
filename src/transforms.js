@@ -3,4 +3,6 @@ module.exports = [
 
   // Disabled for now
   // { name: 'prettify', transform: require('./transforms/prettify') },
+
+  { name: 'base-url-change', transform: require('./transforms/base-url-change') },
 ];
