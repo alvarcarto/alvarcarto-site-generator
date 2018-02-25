@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const path = require('path');
+const URL = require('url-parse');
 
 module.exports = function baseUrlChange(filePath, buffer, opts) {
   const ext = path.extname(filePath);
