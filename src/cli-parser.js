@@ -1,8 +1,7 @@
 const _ = require('lodash');
 const yargs = require('yargs');
-const fs = require('fs');
 const validator = require('validator');
- 
+
 const VERSION = require('../package.json').version;
 
 const defaultOpts = {
@@ -11,7 +10,7 @@ const defaultOpts = {
   outputDir: './build',
 };
 
-function getOpts(argv) {
+function getOpts() {
   const userOpts = getUserOpts();
   const opts = _.merge(defaultOpts, userOpts);
   return validateAndTransformOpts(opts);
@@ -19,23 +18,20 @@ function getOpts(argv) {
 
 function getUserOpts() {
   const userOpts = yargs
-    .usage(
-      'Usage: $0 <url> [options]\n\n' +
-      '<url>   url where to scape site e.g. alvarcarto.com\n'
-    )
+    .usage('Usage: $0 <url> [options]\n\n<url>   url where to scape site e.g. alvarcarto.com\n')
     .example('$0 https://alvarcarto.com')
     .demand(1)
 
     .option('verbose', {
       describe: 'Increase logging',
       default: defaultOpts.verbose,
-      type: 'boolean'
+      type: 'boolean',
     })
 
     .option('concurrency', {
       describe: 'How many concurrent requests to execute',
       default: defaultOpts.concurrency,
-      type: 'integer'
+      type: 'integer',
     })
     .alias('c', 'concurrency')
 
@@ -43,7 +39,7 @@ function getUserOpts() {
       describe: 'Where to output files',
       default: defaultOpts.outputDir,
     })
-    .alias('o', 'output-dir')    
+    .alias('o', 'output-dir')
 
     .help('h')
     .alias('h', 'help')
@@ -51,6 +47,7 @@ function getUserOpts() {
     .version(VERSION)
     .argv;
 
+  // eslint-disable-next-line
   userOpts.url = userOpts._[0];
   return userOpts;
 }
@@ -70,5 +67,5 @@ function throwArgumentError(message) {
 }
 
 module.exports = {
-  getOpts: getOpts
+  getOpts,
 };
