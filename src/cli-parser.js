@@ -9,6 +9,7 @@ const defaultOpts = {
   verbose: true,
   outputDir: './build',
   checkBrokenLinks: true,
+  abortOnErrors: true,
 };
 
 function getOpts() {
@@ -47,6 +48,12 @@ function getUserOpts() {
       default: defaultOpts.checkBrokenLinks,
     })
     .alias('b', 'check-broken-links')
+
+    .option('abort-on-errors', {
+      describe: 'If true, aborts on build errors',
+      default: defaultOpts.abortOnErrors,
+    })
+    .alias('a', 'abort-on-errors')
 
     .help('h')
     .alias('h', 'help')

@@ -24,8 +24,10 @@ BPromise.config({
 const TEMP_DIR = '.tmp';
 
 function main(opts) {
+  const crawlManualUrls = _.filter(manualUrls, m => m.crawl);
+
   const scrapeOpts = {
-    urls: [opts.url],
+    urls: [opts.url].concat(_.map(crawlManualUrls, m => new URL(m.urlPath, opts.url))),
     directory: TEMP_DIR,
     recursive: true,
     filenameGenerator: 'bySiteStructure',
@@ -63,7 +65,7 @@ function main(opts) {
       log('Skip broken links checking.');
       return BPromise.resolve();
     })
-    .tap(() => log(`Scraping ${opts.url} ..`))
+    .tap(() => log(`Scraping ${scrapeOpts.urls.join(', ')} ..`))
     .then(() => scrape(scrapeOpts))
     .then((result) => {
       const siteDirName = result[0].filename.split('/')[0];
@@ -72,22 +74,26 @@ function main(opts) {
       return moveAllInside(siteDirPath, tempDir)
         .then(() => fse.remove(siteDirPath));
     })
-    .tap(() => log(`Manually downloading ${manualUrls.length} urls ..`))
-    .then(() => BPromise.each(manualUrls, (manual) => {
-      const fullUrl = new URL(manual.urlPath, opts.url);
-      console.log(`Downloading ${fullUrl} -> ${TEMP_DIR}/${manual.filePath} ..`);
+    .then(() => {
+      const filteredUrls = _.filter(manualUrls, m => !m.crawl);
 
-      return download(fullUrl, path.join(tempDir, manual.filePath))
-        .tap((res) => {
-          if (res.statusCode < 200) {
-            console.warn(`Non-200 status code returned: ${res.statusCode}`);
-          } else if (res.statusCode > 200 && res.statusCode < 500) {
-            console.warn(`Non-200 status code returned: ${res.statusCode}`);
-          } else if (res.statusCode > 500) {
-            console.error(`ERROR! Status code returned: ${res.statusCode}`);
-          }
-        });
-    }))
+      log(`Manually downloading ${filteredUrls.length} urls ..`)
+      return BPromise.each(filteredUrls, (manual) => {
+        const fullUrl = new URL(manual.urlPath, opts.url);
+        console.log(`Downloading ${fullUrl} -> ${TEMP_DIR}/${manual.filePath} ..`);
+
+        return download(fullUrl, path.join(tempDir, manual.filePath))
+          .tap((res) => {
+            if (res.statusCode < 200) {
+              console.warn(`Non-200 status code returned: ${res.statusCode}`);
+            } else if (res.statusCode > 200 && res.statusCode < 500) {
+              console.warn(`Non-200 status code returned: ${res.statusCode}`);
+            } else if (res.statusCode > 500) {
+              console.error(`ERROR! Status code returned: ${res.statusCode}`);
+            }
+          });
+      });
+    })
     .tap(() => log(`Copying everything from files/* to ${tempDir} ..`))
     .then(() => fse.copy(path.join(__dirname, '../files'), tempDir, { overwrite: false, errorOnExist: true }))
     .tap(() => log('Executing transforms ..'))
@@ -120,7 +126,7 @@ function main(opts) {
           .tap(() => BPromise.delay(transform.delay || 0));
       })
         .tap(() => {
-          if (errors.length > 0) {
+          if (errors.length > 0 && opts.abortOnErrors) {
             console.error('\n\nBuild failed to errors!\n');
             throw new Error(`Build failure at ${transform.name} step`);
           }
