@@ -4,7 +4,7 @@ const URL = require('url-parse');
 
 module.exports = function baseUrlChange(filePath, buffer, opts) {
   const ext = path.extname(filePath);
-  if (!_.includes(['.html', '.css', '.js', '.svg', '.htm', '.txt', '.json'], ext)) {
+  if (!_.includes(['.html', '.css', '.js', '.svg', '.htm', '.txt', '.json', '.xml', '.xsl'], ext)) {
     return buffer;
   }
 
