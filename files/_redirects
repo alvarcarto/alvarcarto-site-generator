@@ -2,6 +2,6 @@
 /  /fr/  302  Language=fr
 
 /background-generator /background-generator/ 302
-/background-generator/*  https://background.alvarcarto.com/:splat  200
+/background-generator*  https://background.alvarcarto.com:splat  200
 
 /*   /404/   404
