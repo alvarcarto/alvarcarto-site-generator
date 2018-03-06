@@ -1,7 +1,7 @@
 module.exports = [
   // We would like to check broken links for 404 page also but
   // broken-link-checker fails if the first site returns status code 404
-  { urlPath: '/404.html', checkBrokenLinks: false, crawl: true },
+  { urlPath: '/404', checkBrokenLinks: false, crawl: true },
   { urlPath: '/thank-you', checkBrokenLinks: true, crawl: true, },
   { urlPath: '/confirm-email', checkBrokenLinks: true, crawl: true },
 
