@@ -13,6 +13,7 @@ const { stripIndent } = require('common-tags');
 const fse = require('fs-extra');
 const cliParser = require('./cli-parser');
 const manualUrls = require('./manual-urls');
+const ignores = require('./ignore');
 const transforms = require('./transforms');
 
 BPromise.promisifyAll(fs);
@@ -31,8 +32,12 @@ function main(opts) {
     directory: TEMP_DIR,
     recursive: true,
     filenameGenerator: 'bySiteStructure',
-    urlFilter: url =>
-      new URL(url).hostname.toLowerCase() === new URL(opts.url).hostname.toLowerCase(),
+    urlFilter: (url) => {
+      const isInsideSite = new URL(url).hostname.toLowerCase() === new URL(opts.url).hostname.toLowerCase();
+      const isIgnored = _.some(ignores, i => new URL(url).href.indexOf(i.pattern) !== -1);
+
+      return isInsideSite && !isIgnored;
+    },
     prettifyUrls: true,
     requestConcurrency: opts.concurrency,
   };
