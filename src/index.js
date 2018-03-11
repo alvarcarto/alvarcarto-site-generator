@@ -35,6 +35,9 @@ function main(opts) {
     urlFilter: (url) => {
       const isInsideSite = new URL(url).hostname.toLowerCase() === new URL(opts.url).hostname.toLowerCase();
       const isIgnored = _.some(ignores, i => new URL(url).href.indexOf(i.pattern) !== -1);
+      if (isIgnored) {
+        console.log(`${chalk.red('IGNORE URL')} ${url}`);
+      }
 
       return isInsideSite && !isIgnored;
     },
