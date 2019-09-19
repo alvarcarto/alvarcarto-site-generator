@@ -10,6 +10,7 @@ const defaultOpts = {
   outputDir: './build',
   checkBrokenLinks: true,
   abortOnErrors: true,
+  target: 'alvarcarto.com',
 };
 
 function getOpts() {
@@ -36,6 +37,12 @@ function getUserOpts() {
       type: 'integer',
     })
     .alias('c', 'concurrency')
+
+    .option('target', {
+      describe: 'Hostname for the release target',
+      default: defaultOpts.target,
+    })
+    .alias('t', 'target')
 
     .option('output-dir', {
       describe: 'Where to output files',

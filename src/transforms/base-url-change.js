@@ -13,5 +13,5 @@ module.exports = function baseUrlChange(filePath, buffer, opts) {
   const str = buffer.toString('utf8');
 
   // Replace e.g. all alvarcarto-wordpress.herokuapp.com -> alvarcarto.com
-  return str.replace(findRe, 'alvarcarto.com');
+  return str.replace(findRe, opts.target);
 };
