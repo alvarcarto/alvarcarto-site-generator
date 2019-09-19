@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.5.1",
-    "broken-link-checker": "^0.7.7",
+    "broken-link-checker": "^0.7.8",
     "chalk": "^2.3.1",
     "common-tags": "^1.7.2",
     "fs-extra": "^5.0.0",
