@@ -24,6 +24,15 @@ The currently working command is below. Link checker is broken: https://github.c
 node . --no-check-broken-links -o ../alvarcarto.com https://alvarcarto-wordpress.herokuapp.com
 ```
 
+## Local generation
+
+1. Start alvarcarto-site with `docker-compose up`
+2. Run generator
+
+    ```
+    node . --no-check-broken-links -o ../alvarcarto.com http://localhost:8080
+    ```
+
 ## Install
 
 

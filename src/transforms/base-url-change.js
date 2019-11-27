@@ -8,10 +8,15 @@ module.exports = function baseUrlChange(filePath, buffer, opts) {
     return buffer;
   }
 
-  const scrapeUrlHostname = new URL(opts.url).hostname.toLowerCase();
-  const findRe = new RegExp(scrapeUrlHostname, 'g');
-  const str = buffer.toString('utf8');
-
   // Replace e.g. all alvarcarto-wordpress.herokuapp.com -> alvarcarto.com
-  return str.replace(findRe, opts.target);
+  const replaces = opts.replace.concat([opts.url]);
+  let str = buffer.toString('utf8');
+
+  _.forEach(replaces, (replaceUrl) => {
+    const scrapeUrlHostname = new URL(replaceUrl).hostname.toLowerCase();
+    const findRe = new RegExp(scrapeUrlHostname, 'g');
+    str = str.replace(findRe, opts.target);
+  });
+
+  return str;
 };

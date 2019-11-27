@@ -7,6 +7,7 @@ const VERSION = require('../package.json').version;
 const defaultOpts = {
   concurrency: 10,
   verbose: true,
+  replace: [],
   outputDir: './build',
   checkBrokenLinks: true,
   abortOnErrors: true,
@@ -37,6 +38,13 @@ function getUserOpts() {
       type: 'integer',
     })
     .alias('c', 'concurrency')
+
+    .option('replace', {
+      describe: 'Additional urls(s) to replace with the target',
+      default: defaultOpts.replace,
+      type: 'string',
+    })
+    .alias('r', 'replace')
 
     .option('target', {
       describe: 'Hostname for the release target',
@@ -74,8 +82,12 @@ function getUserOpts() {
 }
 
 function validateAndTransformOpts(opts) {
-  if (!validator.isURL(opts.url)) throwArgumentError(`Invalid url argument: ${opts.url}`);
+  if (!opts.url.match(/https?:\/\/.+/)) throwArgumentError(`Invalid url argument: ${opts.url}`);
   if (!/^\d+$/.test(opts.concurrency)) throwArgumentError('Invalid "concurrency" argument');
+
+  if (_.isString(opts.replace)) {
+    opts.replace = [opts.replace];
+  }
 
   // Transform opts if needed
   return opts;
